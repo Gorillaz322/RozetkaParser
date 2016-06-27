@@ -1,6 +1,6 @@
-from datetime import timedelta
+import os
 
-BROKER_URL = 'redis://localhost:6379/'
+BROKER_URL = os.environ.get('REDIS_URL')
 
 CELERY_RESULT_BACKEND = BROKER_URL
 
