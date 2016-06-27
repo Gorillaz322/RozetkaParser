@@ -46,7 +46,7 @@ celery = make_celery(app)
 CELERYBEAT_SCHEDULE = {
     'save_products': {
         'task': 'tasks.update_products_main_task',
-        'schedule': timedelta(minutes=30),
+        'schedule': timedelta(minutes=1),
     }
 }
 
