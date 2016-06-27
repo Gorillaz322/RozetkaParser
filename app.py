@@ -1,17 +1,14 @@
 import os
 import logging
-from datetime import timedelta
 
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from celery import Celery
-import requests
+from celery.schedules import crontab
 
 import celeryconfig
 
 app = Flask(__name__)
-
-requests.adapters.DEFAULT_RETRIES = 2
 
 app.debug = True
 
@@ -49,7 +46,7 @@ celery = make_celery(app)
 CELERYBEAT_SCHEDULE = {
     'save_products': {
         'task': 'tasks.update_products_main_task',
-        'schedule': timedelta(minutes=1),
+        'schedule': crontab(minute=50, hour=21),
     }
 }
 
