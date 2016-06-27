@@ -1,0 +1,14 @@
+.collection-item {
+    display:block;
+    background: white;
+    cursor: pointer;
+    padding: 5px 0 5px 0;
+}
+
+.collection-item:hover {
+   background: #4dd0e1;
+}
+
+#product_autocomplete{
+    width: 50%
+}

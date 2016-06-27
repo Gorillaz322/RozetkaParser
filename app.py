@@ -50,7 +50,7 @@ CELERYBEAT_SCHEDULE = {
     }
 }
 
-celery.conf.defaults[1].CELERYBEAT_SCHEDULE = CELERYBEAT_SCHEDULE
+celery.conf.defaults[1]['CELERYBEAT_SCHEDULE'] = CELERYBEAT_SCHEDULE
 
 import Rozetka_parser
 import models

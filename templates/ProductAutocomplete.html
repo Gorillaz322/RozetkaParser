@@ -1,0 +1,10 @@
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+<input id="product_autocomplete" type="text" placeholder="Enter product name">
+
+<script src="{{ url_for('static', filename='js/jquery.autocomplete.js') }}"></script>
+<script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
+
+<script>
+    initAutocomplete();
+</script>

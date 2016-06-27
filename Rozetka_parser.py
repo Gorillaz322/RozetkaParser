@@ -1,7 +1,7 @@
 import json
 import datetime
 
-from flask import abort, render_template
+from flask import abort, render_template, request
 
 from sqlalchemy.orm.exc import NoResultFound
 import requests
@@ -13,7 +13,7 @@ from models import Product, Price
 
 @app.route('/')
 def main():
-    return 'Hello'
+    return render_template("Main.html")
 
 
 def get_products_per_page(tag, page=1):
@@ -116,4 +116,34 @@ def product_chart_handler(slug):
      for item in product.prices.order_by(Price.date)]
 
     return render_template('Product.html', product=product, data=json.dumps(data))
+
+
+@app.route('/autocomplete/product')
+def product_autocomplete_handler():
+    if 'query' not in request.args:
+        return abort(404)
+
+    query = request.args['query']
+
+    search_string = query.strip()
+
+    try:
+        products = db.session.query(Product)\
+            .filter(Product.name.startswith(search_string))\
+            .limit(7)\
+            .all()
+
+        return json.dumps({
+            'query': search_string,
+            'suggestions': [
+                {'value': pr.name, 'data': pr.slug}
+                for pr in products
+                ]
+        })
+
+    except NoResultFound:
+        return json.dumps({
+            'query': search_string,
+            'suggestions': []
+        })
 

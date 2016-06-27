@@ -1,8 +1,8 @@
-function productChartHandler(data) {
+function productChartHandler(data, prName) {
     $(function () {
         $('#container').highcharts({
             title: {
-                text: 'Price chart',
+                text: 'Price chart for ' + prName,
                 x: -20 //center
             },
             xAxis: {
