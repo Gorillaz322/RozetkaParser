@@ -74,13 +74,13 @@ def get_products_per_page(tag, page=1):
 
 
 def save_products(tag):
-    # response = requests.get(
-    #     'http://rozetka.com.ua/{}/filter'.format(tag))
-    # soup = BeautifulSoup(response.content, 'html.parser')
-    # pages_amount = int(
-    #     soup.find_all('li', attrs={'class': 'paginator-catalog-l-i'})[-1]
-    #         .get('id')[4:])
-    pages_amount = 3
+    response = requests.get(
+        'http://rozetka.com.ua/{}/filter'.format(tag))
+    soup = BeautifulSoup(response.content, 'html.parser')
+    pages_amount = int(
+        soup.find_all('li', attrs={'class': 'paginator-catalog-l-i'})[-1]
+            .get('id')[4:])
+
     logger.info('{} has {} pages'.format(tag, pages_amount))
 
     current_page = 1
