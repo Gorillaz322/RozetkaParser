@@ -1,6 +1,7 @@
 import json
 import datetime
-from time import sleep
+import re
+import urllib
 
 from flask import abort, render_template, request
 
@@ -29,39 +30,39 @@ def get_products_per_page(tag, page=1):
 
     soup = BeautifulSoup(response.content, 'html.parser')
 
-    for product in soup\
-            .find_all('div', attrs={'class': 'g-i-tile-i-box-desc'}):
-        link = product\
+    for product_el in soup.find_all('div',
+                                    attrs={'class': 'g-i-tile-i-box-desc'}):
+
+        raw_name = product_el.find('div', class_='g-i-tile-i-title')\
+            .contents[1].contents[0]
+
+        name = raw_name.encode('ascii', errors='ignore').strip()
+
+        link = product_el\
             .find(attrs={'class': 'g-i-tile-i-title clearfix'})\
             .find('a').get('href')
 
         slug = link.split('/')[3]
 
-        try:
-            logger.info('Request to {}'.format(link))
-            product_page = requests.get(link)
-        except requests.exceptions.ConnectionError:
-            logger.info('Connection to {} refused, waiting 5s'.format(link))
-            sleep(60)
-            try:
-                product_page = requests.get(link)
-            except requests.exceptions.ConnectionError:
-                continue
+        price_box = product_el.find('div', attrs={
+                                'class': 'inline',
+                                'name': 'prices_active_element_original'
+                            })
 
-        prod_soup = BeautifulSoup(product_page.content, 'html.parser')
+        if price_box:
+            raw_js = price_box.contents[5].text
 
-        price_el = prod_soup.find(attrs={'itemprop': 'price'})
+            raw_price_data = re.findall(
+                r'var.*?=\s*(.*?);', raw_js, re.DOTALL | re.MULTILINE)[0]
 
-        if price_el:
-            price = price_el.get('content')
+            price_data_str = urllib.unquote(json.loads(raw_price_data)) \
+                .decode('utf8')
+
+            price_dict = eval(price_data_str)
+
+            price = int(price_dict['price'])
         else:
             price = 0
-
-        name = prod_soup\
-            .find('h1', attrs={'class': 'detail-title'})\
-            .text\
-            .encode('ascii', errors='ignore')\
-            .strip()
 
         products.append({
             'name': name,
