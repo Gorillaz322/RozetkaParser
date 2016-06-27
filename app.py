@@ -46,7 +46,7 @@ celery = make_celery(app)
 CELERYBEAT_SCHEDULE = {
     'save_products': {
         'task': 'tasks.update_products_main_task',
-        'schedule': crontab(minute=50, hour=21),
+        'schedule': crontab(minute=50, hour=20),
     }
 }
 
