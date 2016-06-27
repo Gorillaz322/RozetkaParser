@@ -1,5 +1,6 @@
 import json
 import datetime
+from time import sleep
 
 from flask import abort, render_template, request
 
@@ -36,7 +37,12 @@ def get_products_per_page(tag, page=1):
 
         slug = link.split('/')[3]
 
-        product_page = requests.get(link)
+        try:
+            product_page = requests.get(link)
+        except requests.exceptions.ConnectionError:
+            logger.info('Connection to {} refused, waiting 5s'.format(link))
+            sleep(5)
+            product_page = requests.get(link)
 
         prod_soup = BeautifulSoup(product_page.content, 'html.parser')
 
