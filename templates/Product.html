@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ product.name }}</title>
+</head>
+<body>
+    <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+</body>
+<script src="{{ url_for('static', filename='js/jquery-1.11.0.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/highcharts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/exporting.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+
+
+<script>
+    productChartHandler({{ data|safe }});
+</script>
+</html>
