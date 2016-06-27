@@ -5,10 +5,13 @@ from datetime import timedelta
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from celery import Celery
+import requests
 
 import celeryconfig
 
 app = Flask(__name__)
+
+requests.adapters.DEFAULT_RETRIES = 2
 
 app.debug = True
 
