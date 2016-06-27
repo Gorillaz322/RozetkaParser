@@ -38,6 +38,7 @@ def get_products_per_page(tag, page=1):
         slug = link.split('/')[3]
 
         try:
+            logger.info('Request to {}'.format(link))
             product_page = requests.get(link)
         except requests.exceptions.ConnectionError:
             logger.info('Connection to {} refused, waiting 5s'.format(link))
