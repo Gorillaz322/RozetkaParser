@@ -6,7 +6,7 @@ from app import db
 class Product(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(256), nullable=False)
-    type = db.Column(db.String(256))
+    type = db.Column(db.String(256), nullable=False)
     slug = db.Column(db.String(256), nullable=False, unique=True)
 
     @classmethod
@@ -14,8 +14,6 @@ class Product(db.Model):
 
         try:
             prod = Product.query.filter_by(slug=slug).one()
-            if not prod.type:
-                prod.type = prod_type
         except NoResultFound:
             prod = Product(name=name, slug=slug, type=prod_type)
             db.session.add(prod)
