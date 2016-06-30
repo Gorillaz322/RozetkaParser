@@ -1,5 +1,6 @@
 import os
 import logging
+import datetime
 
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -46,9 +47,10 @@ celery = make_celery(app)
 CELERYBEAT_SCHEDULE = {
     'save_products': {
         'task': 'tasks.update_products_main_task',
-        'schedule': crontab(minute=0, hour=5),
+        'schedule': datetime.timedelta(seconds=30),
     }
 }
+
 
 celery.conf.defaults[1]['CELERYBEAT_SCHEDULE'] = CELERYBEAT_SCHEDULE
 

@@ -3,7 +3,8 @@ import datetime
 import re
 import urllib
 
-from flask import abort, render_template, request
+from flask import abort, render_template, request,\
+    redirect, url_for
 
 from sqlalchemy.orm.exc import NoResultFound
 import requests
@@ -11,7 +12,6 @@ from bs4 import BeautifulSoup
 
 from app import app, db, logger
 from models import Product, Price
-
 
 @app.route('/')
 def main():
@@ -80,7 +80,7 @@ def save_products(tag):
     # pages_amount = int(
     #     soup.find_all('li', attrs={'class': 'paginator-catalog-l-i'})[-1]
     #         .get('id')[4:])
-    pages_amount = 5
+    pages_amount = 6
     logger.info('{} has {} pages'.format(tag, pages_amount))
 
     current_page = 1
@@ -94,6 +94,7 @@ def save_products(tag):
         for product in products:
             Product.get_or_create(
                 product['name'],
+                tag.split('/')[0],
                 product['slug'],
                 product['price'],
                 datetime.date.today())
@@ -158,3 +159,97 @@ def product_autocomplete_handler():
             'suggestions': []
         })
 
+
+@app.route('/price_changes/daily')
+def order_products_by_price_change_daily():
+    product_data = []
+    for prod in Product.query.all():
+        prices = prod.prices.order_by(Price.date)
+
+        changes_rate = 0
+        if len(prices.all()) >= 2 and \
+                prices[-2].price != 0 and prices[-1].price != 0:
+            changes_rate = 100 - prices[-1].price * 100 / prices[-2].price
+
+        if changes_rate == 0:
+            continue
+        elif changes_rate < 0:
+            price_change_type = 'decrease'
+        else:
+            price_change_type = 'increase'
+
+        product_data.append({
+            'product': prod,
+            'changes_rate': changes_rate,
+            'price_change_type': price_change_type
+        })
+
+    sorted_data = sorted(Product.query.all(),
+                         key=lambda item: 100 - item.prices.order_by(Price.date)[-1].price * 100 /
+                                                item.prices.order_by(Price.date)[-2].price,
+                         reverse=True)
+
+    return render_template('PriceChanges.html', data=sorted_data)
+
+
+@app.route('/order_products/<order_type>')
+def order_products_by_price(order_type):
+    current_date = datetime.datetime.now()
+    if order_type == 'day':
+        timedelta_days = 2
+    elif order_type == 'week':
+        timedelta_days = 8
+    elif order_type == 'month':
+        timedelta_days = 31
+    elif order_type == 'all_time':
+        timedelta_days = 100
+    else:
+        return redirect_to_order_page()
+
+    products_data = []
+
+    def get_closest_price_by_date(pr_list, main_date):
+        def key_func(item):
+            date = item.date
+            delta = date - main_date \
+                if date > main_date and item.price != 0 \
+                else datetime.timedelta.max
+            return delta
+
+        return min(pr_list, key=key_func)
+
+    for product in Product.query.all():
+        prices = product.prices.order_by(Price.date)
+        if len(prices.all()) < 2 or \
+                prices[-1].date != current_date.date() or \
+                prices[-1].price == 0:
+            continue
+
+        if timedelta_days == 100:
+            start_price = get_closest_price_by_date(prices, prices[0].date)
+        else:
+            start_price = \
+                get_closest_price_by_date(
+                    prices,
+                    (current_date - datetime.timedelta(days=timedelta_days)).date())
+
+        price_change = 100 - prices[-1].price * 100 / start_price.price
+
+        if price_change == 0:
+            continue
+
+        products_data.append({
+            'product': product,
+            'price_change': price_change,
+            'start_price': start_price,
+            'end_price': prices[-1]
+        })
+
+    return products_data
+
+
+def redirect_to_order_page():
+    return redirect(url_for('order_products_by_price', order_type='day'))
+
+app.add_url_rule('/order_products',
+                 view_func=redirect_to_order_page)

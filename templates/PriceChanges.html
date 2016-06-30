@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    {% for product in data %}
+{#        {% set product = pr_data['product'] %}#}
+        <a href="/product/{{ product.slug }}">{{ product.name }}</a>
+        {{ product.prices.all()[-2].price }} {{ product.prices.all()[-1].price }}<br>
+    {% endfor %}
+</body>
+</html>
