@@ -51,14 +51,13 @@ celery = make_celery(app)
 CELERYBEAT_SCHEDULE = {
     'save_products': {
         'task': 'tasks.update_products_main_task',
-        'schedule': datetime.timedelta(seconds=15),
+        'schedule': crontab(minute=0, hour=3),
     },
     'save_daily_price_changes_to_redis': {
         'task': 'tasks.save_daily_price_changes_to_redis_task',
         'schedule': crontab(minute=30, hour=3)
     }
 }
-
 
 celery.conf.defaults[1]['CELERYBEAT_SCHEDULE'] = CELERYBEAT_SCHEDULE
 

@@ -34,7 +34,16 @@
                                         {% for product in data[key]['increase'] %}
                                             {% set prices = product.prices.order_by(price_date_obj) %}
                                             <li class="collection-item" onclick="location.href='{{ url_for("product_chart_handler", slug=product.slug) }}';" style="cursor:pointer;">
-                                                <strong><span class="title">{{ product.name }} </span></strong>
+                                                <div class="row">
+                                                    <div class="col m4">
+                                                        {% if product.img %}
+                                                            <img style="height: 72px;" src="https://s3.eu-central-1.amazonaws.com/rozetka-parser/{{ product.slug }}">
+                                                        {% else %}
+                                                            <img style="height: 72px;" src="https://www.2checkout.com/upload/images/graphic_product_tangible.png">
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="col m8"><strong><span class="title">{{ product.name }} </span></strong></div>
+                                                </div>
                                                 <p>Yesterday price : {{  prices[-2].price }}</p>
                                                 <p>Today price: {{  prices[-1].price }}</p>
                                                 <p>Change in percents: <span class="red-text text-darken-1">+{{  (100 - prices[-2].price * 100  /  prices[-1].price)|round(2) }}%</span>
@@ -57,7 +66,16 @@
                                         {% for product in data[key]['decrease'][-1::] %}
                                             {% set prices = product.prices.order_by(price_date_obj) %}
                                             <li class="collection-item" onclick="location.href='{{ url_for("product_chart_handler", slug=product.slug) }}';" style="cursor:pointer;">
-                                                <strong><span class="title" style="margin-bottom: 5px">{{ product.name }} </span></strong>
+                                                <div class="row">
+                                                    <div class="col m4">
+                                                        {% if product.img %}
+                                                            <img style="height: 72px;" src="https://s3.eu-central-1.amazonaws.com/rozetka-parser/{{ product.slug }}">
+                                                        {% else %}
+                                                            <img style="height: 72px;" src="https://www.2checkout.com/upload/images/graphic_product_tangible.png">
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="col m8"><strong><span class="title">{{ product.name }} </span></strong></div>
+                                                </div>
                                                 <p>Yesterday price : {{  prices[-2].price }}</p>
                                                  <p>    Today price: {{  prices[-1].price }}</p>
                                                   <p>   Change in percents: <span class="green-text text-darken-1">-{{  (prices[-2].price * 100  /  prices[-1].price - 100)|round(2) }}%</span>

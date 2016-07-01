@@ -6,6 +6,8 @@ from boto.s3.connection import Key
 
 from app import db, bucket
 
+BUCKET_LIST = [item.key for item in list(bucket.list())]
+
 
 class Product(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
@@ -41,6 +43,10 @@ class Product(db.Model):
         return prod
 
     def save_product_image_to_s3(self):
+        if any([key == self.slug
+                for key in BUCKET_LIST]):
+            return
+
         k = Key(bucket)
         k.key = self.slug
         file_object = urllib2.urlopen(self.img)
