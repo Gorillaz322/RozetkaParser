@@ -7,6 +7,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from celery import Celery
 from celery.schedules import crontab
 import redis
+import boto.s3.connection
 
 import celeryconfig
 
@@ -50,7 +51,7 @@ celery = make_celery(app)
 CELERYBEAT_SCHEDULE = {
     'save_products': {
         'task': 'tasks.update_products_main_task',
-        'schedule': crontab(minute=0, hour=3),
+        'schedule': datetime.timedelta(seconds=15),
     },
     'save_daily_price_changes_to_redis': {
         'task': 'tasks.save_daily_price_changes_to_redis_task',
@@ -60,6 +61,14 @@ CELERYBEAT_SCHEDULE = {
 
 
 celery.conf.defaults[1]['CELERYBEAT_SCHEDULE'] = CELERYBEAT_SCHEDULE
+
+conn = boto.s3.connect_to_region(os.environ.get('REGION_HOST'),
+                                 aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                                 aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+                                 is_secure=True,
+                                 calling_format=boto.s3.connection.OrdinaryCallingFormat(),
+                                 )
+bucket = conn.get_bucket('rozetka-parser')
 
 import Rozetka_parser
 import models

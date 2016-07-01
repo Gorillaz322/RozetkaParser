@@ -17,3 +17,22 @@
 nav #search-input {
     height: 64px;
 }
+
+i {
+    display: inline-flex;
+    vertical-align: middle;
+}
+
+i.decrease {
+    color: #43a047;
+    font-size: 30px;
+}
+
+i.increase {
+    color: #e53935;
+    font-size: 30px;
+}
+
+.collection-item span {
+    font-size: 20px;
+}

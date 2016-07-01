@@ -3,11 +3,12 @@ import re
 import urllib
 import json
 
-from app import celery as flask_celery, logger, app_redis, db
-from Rozetka_parser import Price, Product
-
 import requests
 from bs4 import BeautifulSoup
+
+from app import celery as flask_celery, logger, app_redis,\
+    db
+import models
 
 TAGS = ['notebooks/c80004', 'computers/c80095', 'tablets/c130309',
         'mobile-phones/c80003', 'photo/c80001', 'refrigerators/c80125',
@@ -31,6 +32,9 @@ def get_products_per_page(tag, page=1):
 
         raw_name = product_el.find('div', class_='g-i-tile-i-title')\
             .contents[1].contents[0]
+
+        img_url = product_el.find(
+            'div', class_=['g-i-tile-i-image']).find('img').get('data_src')
 
         name = raw_name.encode('ascii', errors='ignore').strip()
 
@@ -63,7 +67,9 @@ def get_products_per_page(tag, page=1):
         products.append({
             'name': name,
             'slug': slug,
-            'price': price
+            'price': price,
+            'img': img_url,
+            'link': link
         })
 
     return products
@@ -76,7 +82,7 @@ def save_products(tag):
     # pages_amount = int(
     #     soup.find_all('li', attrs={'class': 'paginator-catalog-l-i'})[-1]
     #         .get('id')[4:])
-    pages_amount = 6
+    pages_amount = 7
     logger.info('{} has {} pages'.format(tag, pages_amount))
 
     current_page = 1
@@ -88,12 +94,14 @@ def save_products(tag):
             return True
 
         for product in products:
-            Product.get_or_create(
+            models.Product.get_or_create(
                 product['name'],
                 tag.split('/')[0],
+                product['link'],
                 product['slug'],
                 product['price'],
-                datetime.date.today())
+                datetime.date.today(),
+                img=product['img'])
 
         logger.info('END OF HANDLING {} | page {}'.format(tag, current_page))
 
@@ -109,11 +117,11 @@ def save_daily_price_changes_to_redis():
     current_date = datetime.datetime.now()
     yesterday_date = current_date - datetime.timedelta(days=1)
 
-    for product in Product.query.all():
+    for product in models.Product.query.all():
         if len(product.prices.all()) < 2:
             continue
 
-        prices = product.prices.order_by(Price.date)
+        prices = product.prices.order_by(models.Price.date)
 
         today_price = prices[-1]
         yesterday_price = prices[-2]

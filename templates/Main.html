@@ -27,7 +27,7 @@
                     </div>
                     <div class="row">
                         <div class="col s12 m6" style="overflow: hidden">
-                            <div class="center" style="font-size: 19px;">Price increase</div>
+                            <div class="center" style="font-size: 19px;">Price increase <i class="material-icons increase">trending_up</i></div>
                             <div style="overflow-y: auto; max-height: 400px;">
                                 <ul class="collection" >
                                     {% if data[key]['increase'] %}
@@ -35,9 +35,9 @@
                                             {% set prices = product.prices.order_by(price_date_obj) %}
                                             <li class="collection-item" onclick="location.href='{{ url_for("product_chart_handler", slug=product.slug) }}';" style="cursor:pointer;">
                                                 <strong><span class="title">{{ product.name }} </span></strong>
-                                                <p>Yesterday price : {{  prices[-2].price }}<br>
-                                                 Today price: {{  prices[-1].price }}<br>
-                                                 Change in percents: +{{  100 - prices[-2].price * 100  /  prices[-1].price }}
+                                                <p>Yesterday price : {{  prices[-2].price }}</p>
+                                                <p>Today price: {{  prices[-1].price }}</p>
+                                                <p>Change in percents: <span class="red-text text-darken-1">+{{  (100 - prices[-2].price * 100  /  prices[-1].price)|round(2) }}%</span>
                                                 </p>
                                             </li>
                                         {% endfor %}
@@ -50,7 +50,7 @@
                             </div>
                         </div>
                         <div class="col s12 m6" style="overflow: hidden">
-                            <div class="center" style="font-size: 19px;">Price decrease</div>
+                            <div class="center" style="font-size: 19px;">Price decrease <i class="material-icons decrease">trending_down</i></div>
                             <div style="overflow-y: auto; max-height: 400px;">
                                 <ul class="collection" >
                                     {% if data[key]['decrease'] %}
@@ -58,9 +58,9 @@
                                             {% set prices = product.prices.order_by(price_date_obj) %}
                                             <li class="collection-item" onclick="location.href='{{ url_for("product_chart_handler", slug=product.slug) }}';" style="cursor:pointer;">
                                                 <strong><span class="title" style="margin-bottom: 5px">{{ product.name }} </span></strong>
-                                                <p>Yesterday price : {{  prices[-2].price }}<br>
-                                                     Today price: {{  prices[-1].price }}<br>
-                                                     Change in percents: -{{  prices[-2].price * 100  /  prices[-1].price - 100 }}
+                                                <p>Yesterday price : {{  prices[-2].price }}</p>
+                                                 <p>    Today price: {{  prices[-1].price }}</p>
+                                                  <p>   Change in percents: <span class="green-text text-darken-1">-{{  (prices[-2].price * 100  /  prices[-1].price - 100)|round(2) }}%</span>
                                                 </p>
                                             </li>
                                     {% endfor %}

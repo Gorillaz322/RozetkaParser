@@ -11,7 +11,7 @@ function productChartHandler(data, prName) {
                 plotLines: [{
                     value: 0,
                     width: 1,
-                    color: '#808080'
+                    color: '#37474f'
                 }]
             },
             legend: {
