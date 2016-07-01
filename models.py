@@ -41,10 +41,6 @@ class Product(db.Model):
         return prod
 
     def save_product_image_to_s3(self):
-        if any([item.key == self.slug
-                for item in list(bucket.list())]):
-            return
-
         k = Key(bucket)
         k.key = self.slug
         file_object = urllib2.urlopen(self.img)
