@@ -12,7 +12,7 @@ import celeryconfig
 
 app = Flask(__name__)
 
-app_redis = redis.StrictRedis(host='localhost', port='6379')
+app_redis = redis.from_url(os.environ.get('REDIS_URL'))
 
 app.debug = True
 
