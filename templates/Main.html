@@ -35,11 +35,11 @@
                                             {% set prices = product.prices.order_by(price_date_obj) %}
                                             <li class="collection-item" onclick="location.href='{{ url_for("product_chart_handler", slug=product.slug) }}';" style="cursor:pointer;">
                                                 <div class="row">
-                                                    <div class="col m4">
+                                                    <div class="col m4" style="height: 100px;">
                                                         {% if product.img %}
-                                                            <img style="height: 72px;" src="https://s3.eu-central-1.amazonaws.com/rozetka-parser/{{ product.slug }}">
+                                                            <img src="https://s3.eu-central-1.amazonaws.com/rozetka-parser/{{ product.slug }}">
                                                         {% else %}
-                                                            <img style="height: 72px;" src="https://www.2checkout.com/upload/images/graphic_product_tangible.png">
+                                                            <img src="https://www.2checkout.com/upload/images/graphic_product_tangible.png">
                                                         {% endif %}
                                                     </div>
                                                     <div class="col m8"><strong><span class="title">{{ product.name }} </span></strong></div>
@@ -67,11 +67,11 @@
                                             {% set prices = product.prices.order_by(price_date_obj) %}
                                             <li class="collection-item" onclick="location.href='{{ url_for("product_chart_handler", slug=product.slug) }}';" style="cursor:pointer;">
                                                 <div class="row">
-                                                    <div class="col m4">
+                                                    <div class="col m4" style="height: 100px;">
                                                         {% if product.img %}
-                                                            <img style="height: 72px;" src="https://s3.eu-central-1.amazonaws.com/rozetka-parser/{{ product.slug }}">
+                                                            <img src="https://s3.eu-central-1.amazonaws.com/rozetka-parser/{{ product.slug }}">
                                                         {% else %}
-                                                            <img style="height: 72px;" src="https://www.2checkout.com/upload/images/graphic_product_tangible.png">
+                                                            <img src="https://www.2checkout.com/upload/images/graphic_product_tangible.png">
                                                         {% endif %}
                                                     </div>
                                                     <div class="col m8"><strong><span class="title">{{ product.name }} </span></strong></div>

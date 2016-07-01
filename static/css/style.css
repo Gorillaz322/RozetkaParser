@@ -36,3 +36,8 @@ i.increase {
 .collection-item span {
     font-size: 20px;
 }
+
+.collection-item img {
+    max-width: 100%;
+    max-height: 100%;
+}
