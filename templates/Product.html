@@ -3,18 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ product.name }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <script src="{{ url_for('static', filename='js/jquery-1.11.0.min.js') }}"></script>
 <body>
     {% include "ProductAutocomplete.html" %}
+    <div class="center">
+        <h5>Price changes for {{ product.name }}</h5>
+    </div>
+
     <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 </body>
-<script src="{{ url_for('static', filename='js/highcharts.js') }}"></script>
-<script src="{{ url_for('static', filename='js/exporting.js') }}"></script>
-<script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery-1.11.0.min.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
+    <script src="{{ url_for('static', filename='js/jquery.autocomplete.js') }}"></script>
 
-<script>
-    productChartHandler({{ data|safe }}, "{{ product.name }}");
-</script>
+    <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/highcharts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/exporting.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+
+    <script>
+        initAutocomplete();
+        productChartHandler({{ data|safe }}, "{{ product.name }}");
+    </script>
 </html>

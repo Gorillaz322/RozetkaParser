@@ -1,111 +1,35 @@
 import json
 import datetime
-import re
-import urllib
 
 from flask import abort, render_template, request,\
     redirect, url_for
 
 from sqlalchemy.orm.exc import NoResultFound
-import requests
-from bs4 import BeautifulSoup
 
-from app import app, db, logger
+from app import app, db, app_redis
 from models import Product, Price
+
 
 @app.route('/')
 def main():
-    return render_template("Main.html")
+    data_json = app_redis.get('daily_price_changes_json')
+    data = json.loads(data_json)
+    prod_data = {}
 
+    def sort_products_by_daily_price_change(item):
+        prices = item.prices.order_by(Price.date)
+        return 100 - prices[-1].price * 100 / prices[-2].price
 
-def get_products_per_page(tag, page=1):
-    products = []
+    for key in data:
+        pr_data = data[key]
+        prod_data[key] = {}
+        for pr_key in pr_data:
+            products = Product.query.filter(Product.slug.in_(pr_data[pr_key]))
+            sorted_products = sorted(
+                products, key=sort_products_by_daily_price_change)
+            prod_data[key][pr_key] = sorted_products
 
-    response = requests.get(
-        'http://rozetka.com.ua/{}/filter?page={}'.format(tag, page))
-    try:
-        response.request.path_url.split('/')[4]
-    except IndexError:
-        return []
-
-    soup = BeautifulSoup(response.content, 'html.parser')
-
-    for product_el in soup.find_all('div',
-                                    attrs={'class': 'g-i-tile-i-box-desc'}):
-
-        raw_name = product_el.find('div', class_='g-i-tile-i-title')\
-            .contents[1].contents[0]
-
-        name = raw_name.encode('ascii', errors='ignore').strip()
-
-        link = product_el\
-            .find(attrs={'class': 'g-i-tile-i-title clearfix'})\
-            .find('a').get('href')
-
-        slug = link.split('/')[3]
-
-        price_box = product_el.find('div', attrs={
-                                'class': 'inline',
-                                'name': 'prices_active_element_original'
-                            })
-
-        if price_box:
-            raw_js = price_box.contents[5].text
-
-            raw_price_data = re.findall(
-                r'var.*?=\s*(.*?);', raw_js, re.DOTALL | re.MULTILINE)[0]
-
-            price_data_str = urllib.unquote(json.loads(raw_price_data)) \
-                .decode('utf8')
-
-            price_dict = eval(price_data_str)
-
-            price = int(price_dict['price'])
-        else:
-            price = 0
-
-        products.append({
-            'name': name,
-            'slug': slug,
-            'price': price
-        })
-
-    return products
-
-
-def save_products(tag):
-    # response = requests.get(
-    #     'http://rozetka.com.ua/{}/filter'.format(tag))
-    # soup = BeautifulSoup(response.content, 'html.parser')
-    # pages_amount = int(
-    #     soup.find_all('li', attrs={'class': 'paginator-catalog-l-i'})[-1]
-    #         .get('id')[4:])
-    pages_amount = 6
-    logger.info('{} has {} pages'.format(tag, pages_amount))
-
-    current_page = 1
-    while current_page <= pages_amount:
-        logger.info('START OF HANDLING {} | page {}'.format(tag, current_page))
-
-        products = get_products_per_page(tag, page=current_page)
-        if not products:
-            return True
-
-        for product in products:
-            Product.get_or_create(
-                product['name'],
-                tag.split('/')[0],
-                product['slug'],
-                product['price'],
-                datetime.date.today())
-
-        logger.info('END OF HANDLING {} | page {}'.format(tag, current_page))
-
-        current_page += 1
-
-    db.session.commit()
-
-    return True
+    return render_template("Main.html", data=prod_data, price_date_obj=Price.date)
 
 
 @app.route('/product/<slug>')

@@ -2,8 +2,7 @@ function productChartHandler(data, prName) {
     $(function () {
         $('#container').highcharts({
             title: {
-                text: 'Price chart for ' + prName,
-                x: -20 //center
+                text: ''
             },
             xAxis: {
                 categories: data['dates']

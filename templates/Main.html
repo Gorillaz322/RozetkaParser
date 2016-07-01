@@ -3,9 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <title>Main</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <script src="{{ url_for('static', filename='js/jquery-1.11.0.min.js') }}"></script>
     {% include "ProductAutocomplete.html" %}
+    <div class="center">
+        <h3>Daily price changes</h3>
+    </div>
+    {% set closed_row = False %}
+    {% for key in data %}
+        {% if loop.first or closed_row %}
+            <div class="row">
+            {% set closed_row = False %}
+        {% endif %}
+        <div class="col s12 m6">
+            <div class="card z-depth-2">
+                <div class="card-content">
+                    <div class="center">
+                        <span class="card-title" style="font-size: 34px;">{{ key|capitalize }}</span>
+                    </div>
+                    <div class="row">
+                        <div class="col s12 m6" style="overflow: hidden">
+                            <div class="center" style="font-size: 19px;">Price increase</div>
+                            <div style="overflow-y: auto; max-height: 400px;">
+                                <ul class="collection" >
+                                    {% if data[key]['increase'] %}
+                                        {% for product in data[key]['increase'] %}
+                                            {% set prices = product.prices.order_by(price_date_obj) %}
+                                            <li class="collection-item" onclick="location.href='{{ url_for("product_chart_handler", slug=product.slug) }}';" style="cursor:pointer;">
+                                                <strong><span class="title">{{ product.name }} </span></strong>
+                                                <p>Yesterday price : {{  prices[-2].price }}<br>
+                                                 Today price: {{  prices[-1].price }}<br>
+                                                 Change in percents: +{{  100 - prices[-2].price * 100  /  prices[-1].price }}
+                                                </p>
+                                            </li>
+                                        {% endfor %}
+                                        {% else %}
+                                            <li class="collection-item">
+                                                <p>There are no products</p>
+                                            </li>
+                                        {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col s12 m6" style="overflow: hidden">
+                            <div class="center" style="font-size: 19px;">Price decrease</div>
+                            <div style="overflow-y: auto; max-height: 400px;">
+                                <ul class="collection" >
+                                    {% if data[key]['decrease'] %}
+                                        {% for product in data[key]['decrease'][-1::] %}
+                                            {% set prices = product.prices.order_by(price_date_obj) %}
+                                            <li class="collection-item" onclick="location.href='{{ url_for("product_chart_handler", slug=product.slug) }}';" style="cursor:pointer;">
+                                                <strong><span class="title" style="margin-bottom: 5px">{{ product.name }} </span></strong>
+                                                <p>Yesterday price : {{  prices[-2].price }}<br>
+                                                     Today price: {{  prices[-1].price }}<br>
+                                                     Change in percents: -{{  prices[-2].price * 100  /  prices[-1].price - 100 }}
+                                                </p>
+                                            </li>
+                                    {% endfor %}
+                                    {% else %}
+                                        <li class="collection-item">
+                                          <p>There are no products</p>
+                                          </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if loop.last or loop.index is even%}
+            {% set closed_row = True %}
+            </div>
+        {% endif %}
+    {% endfor %}
 </body>
+    <script src="{{ url_for('static', filename='js/jquery-1.11.0.min.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
+    <script src="{{ url_for('static', filename='js/jquery.autocomplete.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
+
+    <script>
+        initAutocomplete();
+    </script>
 </html>

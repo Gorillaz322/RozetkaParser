@@ -1,5 +1,5 @@
 function initAutocomplete(){
-    $('#product_autocomplete').autocomplete({
+    $('#search-input').autocomplete({
         serviceUrl: '/autocomplete/product',
         params: {},
         onSelect: function (suggestion) {

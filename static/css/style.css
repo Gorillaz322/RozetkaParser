@@ -6,9 +6,14 @@
 }
 
 .collection-item:hover {
-   background: #4dd0e1;
+    background: #37474f;
+    color: #FFFFFF;
 }
 
 #product_autocomplete{
     width: 50%
+}
+
+nav #search-input {
+    height: 64px;
 }

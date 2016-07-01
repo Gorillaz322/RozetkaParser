@@ -6,10 +6,13 @@ from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from celery import Celery
 from celery.schedules import crontab
+import redis
 
 import celeryconfig
 
 app = Flask(__name__)
+
+app_redis = redis.StrictRedis(host='localhost', port='6379')
 
 app.debug = True
 
@@ -48,7 +51,11 @@ CELERYBEAT_SCHEDULE = {
     'save_products': {
         'task': 'tasks.update_products_main_task',
         'schedule': datetime.timedelta(seconds=30),
-    }
+    },
+    # 'save_daily_price_changes_to_redis': {
+    #     'task': 'tasks.save_daily_price_changes_to_redis_task',
+    #     'schedule': datetime.timedelta(seconds=30),
+    # }
 }
 
 
