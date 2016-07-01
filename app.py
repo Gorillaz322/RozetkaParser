@@ -48,13 +48,13 @@ def make_celery(flask_app):
 celery = make_celery(app)
 
 CELERYBEAT_SCHEDULE = {
-    # 'save_products': {
-    #     'task': 'tasks.update_products_main_task',
-    #     'schedule': datetime.timedelta(seconds=30),
-    # },
+    'save_products': {
+        'task': 'tasks.update_products_main_task',
+        'schedule': crontab(minute=0, hour=3),
+    },
     'save_daily_price_changes_to_redis': {
         'task': 'tasks.save_daily_price_changes_to_redis_task',
-        'schedule': datetime.timedelta(seconds=30),
+        'schedule': crontab(minute=30, hour=3)
     }
 }
 
