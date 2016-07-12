@@ -115,7 +115,6 @@ def save_products(tag):
 def save_daily_price_changes_to_redis():
     data = {}
     current_date = datetime.datetime.now()
-    yesterday_date = current_date - datetime.timedelta(days=1)
 
     for product in models.Product.query.all():
         if len(product.prices.all()) < 2:
@@ -129,8 +128,7 @@ def save_daily_price_changes_to_redis():
         if (int(today_price.price) and int(yesterday_price.price)) == 0:
             continue
 
-        if prices[-1].date != current_date.date() or \
-                prices[-2].date != yesterday_date.date():
+        if prices[-1].date != current_date.date():
             continue
 
         if product.type not in data:

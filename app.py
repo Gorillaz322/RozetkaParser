@@ -55,7 +55,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'save_daily_price_changes_to_redis': {
         'task': 'tasks.save_daily_price_changes_to_redis_task',
-        'schedule': crontab(minute=30, hour=3)
+        'schedule': datetime.timedelta(seconds=30)
     }
 }
 
