@@ -18,7 +18,7 @@ class Product(db.Model):
     slug = db.Column(db.String(256), nullable=False, unique=True)
 
     @classmethod
-    def get_or_create(cls, name, prod_type, link, slug, price, date, img=None):
+    def get_or_create(cls, name, prod_type, link, slug, value, date, img=None):
 
         try:
             prod = Product.query.filter_by(slug=slug).one()
@@ -37,7 +37,7 @@ class Product(db.Model):
             prod.save_product_image_to_s3()
 
         if not prod.prices.filter_by(date=date).all():
-            price_obj = Price(price=price, product=prod, date=date)
+            price_obj = Price(value=value, product=prod, date=date)
             db.session.add(price_obj)
 
         return prod
@@ -56,7 +56,7 @@ class Product(db.Model):
 
 class Price(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
-    price = db.Column(db.Float(), nullable=False)
+    value = db.Column(db.Integer())
     product_id = db.Column(db.Integer(), db.ForeignKey('product.id'), nullable=False)
     product = db.relationship('Product',
                               backref=db.backref("prices", lazy='dynamic'))

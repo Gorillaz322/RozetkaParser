@@ -32,21 +32,16 @@
                                 <ul class="collection" >
                                     {% if data[key]['increase'] %}
                                         {% for product in data[key]['increase'] %}
-                                            {% set prices = product.prices.order_by(price_date_obj) %}
                                             <li class="collection-item" onclick="location.href='{{ url_for("product_chart_handler", slug=product.slug) }}';" style="cursor:pointer;">
                                                 <div class="row">
                                                     <div class="col m4" style="height: 100px;">
-                                                        {% if product.img %}
-                                                            <img src="https://s3.eu-central-1.amazonaws.com/rozetka-parser/{{ product.slug }}">
-                                                        {% else %}
-                                                            <img src="https://www.2checkout.com/upload/images/graphic_product_tangible.png">
-                                                        {% endif %}
+                                                        <img src="https://s3.eu-central-1.amazonaws.com/rozetka-parser/{{ product.slug }}">
                                                     </div>
                                                     <div class="col m8"><strong><span class="title">{{ product.name }} </span></strong></div>
                                                 </div>
-                                                <p>Yesterday price : {{  prices[-2].price }}</p>
-                                                <p>Today price: {{  prices[-1].price }}</p>
-                                                <p>Change in percents: <span class="red-text text-darken-1">+{{  (100 - prices[-2].price * 100  /  prices[-1].price)|round(2) }}%</span>
+                                                <p>Yesterday price : {{ product.yesterday_price }}</p>
+                                                <p>Today price: {{  product.current_price }}</p>
+                                                <p>Change in percents: <span class="red-text text-darken-1">+{{  (100 - product.yesterday_price * 100  /  product.current_price)|round(2) }}%</span>
                                                 </p>
                                             </li>
                                         {% endfor %}
@@ -63,22 +58,17 @@
                             <div style="overflow-y: auto; max-height: 400px;">
                                 <ul class="collection" >
                                     {% if data[key]['decrease'] %}
-                                        {% for product in data[key]['decrease'][-1::] %}
-                                            {% set prices = product.prices.order_by(price_date_obj) %}
+                                        {% for product in data[key]['decrease'][::-1] %}
                                             <li class="collection-item" onclick="location.href='{{ url_for("product_chart_handler", slug=product.slug) }}';" style="cursor:pointer;">
                                                 <div class="row">
                                                     <div class="col m4" style="height: 100px;">
-                                                        {% if product.img %}
-                                                            <img src="https://s3.eu-central-1.amazonaws.com/rozetka-parser/{{ product.slug }}">
-                                                        {% else %}
-                                                            <img src="https://www.2checkout.com/upload/images/graphic_product_tangible.png">
-                                                        {% endif %}
+                                                        <img src="https://s3.eu-central-1.amazonaws.com/rozetka-parser/{{ product.slug }}">
                                                     </div>
                                                     <div class="col m8"><strong><span class="title">{{ product.name }} </span></strong></div>
                                                 </div>
-                                                <p>Yesterday price : {{  prices[-2].price }}</p>
-                                                 <p>    Today price: {{  prices[-1].price }}</p>
-                                                  <p>   Change in percents: <span class="green-text text-darken-1">-{{  (prices[-2].price * 100  /  prices[-1].price - 100)|round(2) }}%</span>
+                                                <p>Yesterday price : {{ product.yesterday_price }}</p>
+                                                <p>Today price: {{  product.current_price }}</p>
+                                                <p>   Change in percents: <span class="green-text text-darken-1">-{{  (product.yesterday_price * 100  /  product.current_price - 100)|round(2) }}%</span>
                                                 </p>
                                             </li>
                                     {% endfor %}

@@ -5,6 +5,7 @@ import json
 
 import requests
 from bs4 import BeautifulSoup
+from sqlalchemy import func
 
 from app import celery as flask_celery, logger, app_redis,\
     db
@@ -116,16 +117,17 @@ def save_daily_price_changes_to_redis():
     data = {}
     current_date = datetime.datetime.now()
 
-    for product in models.Product.query.all():
-        if len(product.prices.all()) < 2:
-            continue
+    for product in models.Product.query\
+            .join(models.Price)\
+            .group_by(models.Product.id)\
+            .having(func.count(models.Price.id) >= 2):
 
         prices = product.prices.order_by(models.Price.date)
 
         today_price = prices[-1]
         yesterday_price = prices[-2]
 
-        if (int(today_price.price) and int(yesterday_price.price)) == 0:
+        if not (today_price.value and yesterday_price.value):
             continue
 
         if prices[-1].date != current_date.date():
@@ -136,15 +138,38 @@ def save_daily_price_changes_to_redis():
             data[product.type]['increase'] = []
             data[product.type]['decrease'] = []
 
-        price_change = int(yesterday_price.price - today_price.price)
+        price_change = yesterday_price.value - today_price.value
+
+        product_info = {
+            'name': product.name,
+            'slug': product.slug,
+            'yesterday_price': yesterday_price.value,
+            'current_price': today_price.value
+        }
 
         if price_change > 0:
-            data[product.type]['decrease'].append(product.slug)
+            data[product.type]['decrease'].append(product_info)
         elif price_change < 0:
-            data[product.type]['increase'].append(product.slug)
+            data[product.type]['increase'].append(product_info)
 
-    app_redis.delete('daily_price_changes')
-    app_redis.set("daily_price_changes_json", json.dumps(data))
+    def sort_products_by_price_change(item):
+        return 100 - item['current_price'] * 100 / item['yesterday_price']
+
+    sorted_data = {}
+
+    for product_type in data:
+        products_info = data[product_type]
+        sorted_data[product_type] = {}
+
+        for price_change_type in products_info:
+            sorted_products = sorted(
+                products_info[price_change_type],
+                key=sort_products_by_price_change)
+
+            sorted_data[product_type][price_change_type] = \
+                sorted_products
+
+    app_redis.set("daily_price_changes_json", json.dumps(sorted_data))
 
     return True
 
