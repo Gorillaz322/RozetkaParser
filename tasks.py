@@ -113,47 +113,9 @@ def save_products(tag):
     return True
 
 
-def save_daily_price_changes_to_redis():
-    data = {}
-    current_date = datetime.datetime.now()
-
-    for product in models.Product.query\
-            .join(models.Price)\
-            .group_by(models.Product.id)\
-            .having(func.count(models.Price.id) >= 2):
-
-        prices = product.prices.order_by(models.Price.date)
-
-        today_price = prices[-1]
-        yesterday_price = prices[-2]
-
-        if not (today_price.value and yesterday_price.value):
-            continue
-
-        if prices[-1].date != current_date.date():
-            continue
-
-        if product.type not in data:
-            data[product.type] = {}
-            data[product.type]['increase'] = []
-            data[product.type]['decrease'] = []
-
-        price_change = yesterday_price.value - today_price.value
-
-        product_info = {
-            'name': product.name,
-            'slug': product.slug,
-            'yesterday_price': yesterday_price.value,
-            'current_price': today_price.value
-        }
-
-        if price_change > 0:
-            data[product.type]['decrease'].append(product_info)
-        elif price_change < 0:
-            data[product.type]['increase'].append(product_info)
-
+def sort_products_by_price_changes(data):
     def sort_products_by_price_change(item):
-        return 100 - item['current_price'] * 100 / item['yesterday_price']
+        return 100 - item['current_price'] * 100 / item['start_price']
 
     sorted_data = {}
 
@@ -169,7 +131,109 @@ def save_daily_price_changes_to_redis():
             sorted_data[product_type][price_change_type] = \
                 sorted_products
 
-    app_redis.set("daily_price_changes_json", json.dumps(sorted_data))
+    return sorted_data
+
+
+def get_price_change_type(current_price, start_price):
+    change = start_price - current_price
+    if change == 0:
+        return
+
+    return 'increase' if change < 0 \
+        else 'decrease'
+
+
+def save_price_changes_to_redis():
+    price_changes_data = {
+        'daily': {},
+        'weekly': {},
+        'monthly': {}
+    }
+    current_date = datetime.datetime.now()
+
+    for product in models.Product.query\
+            .join(models.Price)\
+            .group_by(models.Product.id)\
+            .having(func.count(models.Price.id) >= 2):
+
+        prices = product.prices\
+            .filter(models.Price.value.isnot(None))\
+            .order_by(models.Price.date)
+
+        if len(prices.all()) < 2:
+            continue
+
+        today_price = prices[-1]
+
+        if not today_price.value or today_price.date != current_date.date():
+            continue
+
+        base_product_data = {
+            'name': product.name,
+            'slug': product.slug,
+            'current_price': today_price.value
+        }
+
+        yesterday_price = prices[-2]
+
+        change_type = get_price_change_type(today_price.value, yesterday_price.value)
+        if change_type:
+            if product.type not in price_changes_data['daily']:
+                price_changes_data['daily'][product.type] = {}
+                price_changes_data['daily'][product.type]['increase'] = []
+                price_changes_data['daily'][product.type]['decrease'] = []
+
+            copy_of_info_dict = base_product_data.copy()
+            copy_of_info_dict.update({'start_price': yesterday_price.value})
+            price_changes_data['daily'][product.type][change_type].append(copy_of_info_dict)
+
+            logger.info(
+                'Added {} to daily changes ({})'.format(product.slug, change_type))
+
+        week_old_price = prices.filter(
+                models.Price.date > current_date - datetime.timedelta(days=7))\
+            .order_by(models.Price.date)\
+            .first()
+
+        change_type = get_price_change_type(today_price.value, week_old_price.value)
+        if change_type:
+            if product.type not in price_changes_data['weekly']:
+                price_changes_data['weekly'][product.type] = {}
+                price_changes_data['weekly'][product.type]['increase'] = []
+                price_changes_data['weekly'][product.type]['decrease'] = []
+
+            copy_of_info_dict = base_product_data.copy()
+            copy_of_info_dict.update({'start_price': week_old_price.value})
+            price_changes_data['weekly'][product.type][change_type]\
+                .append(copy_of_info_dict)
+
+            logger.info(
+                'Added {} to weekly changes ({})'.format(product.slug, change_type))
+
+        month_old_price = prices.filter(
+                models.Price.date > current_date - datetime.timedelta(days=30))\
+            .order_by(models.Price.date)\
+            .first()
+        change_type = get_price_change_type(today_price.value, month_old_price.value)
+        if change_type:
+            if product.type not in price_changes_data['monthly']:
+                price_changes_data['monthly'][product.type] = {}
+                price_changes_data['monthly'][product.type]['increase'] = []
+                price_changes_data['monthly'][product.type]['decrease'] = []
+
+            copy_of_info_dict = base_product_data.copy()
+            copy_of_info_dict.update({'start_price': month_old_price.value})
+            price_changes_data['monthly'][product.type][change_type]\
+                .append(copy_of_info_dict)
+
+            logger.info(
+                'Added {} to monthly changes ({})'.format(product.slug, change_type))
+
+    sorted_data = {}
+    for time_type, data in price_changes_data.iteritems():
+        sorted_data[time_type] = sort_products_by_price_changes(data)
+
+    app_redis.set("price_changes_json", json.dumps(sorted_data))
 
     return True
 

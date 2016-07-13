@@ -9,7 +9,7 @@ from models import Product, Price
 
 @app.route('/')
 def main():
-    products_data_json = app_redis.get('daily_price_changes_json')
+    products_data_json = app_redis.get('price_changes_json')
     products_data = json.loads(products_data_json)
 
     return render_template("Main.html", data=products_data)
